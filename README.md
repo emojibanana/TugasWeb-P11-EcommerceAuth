@@ -79,13 +79,60 @@ php artisan test    # 25/25 lolos
 
 ## Screenshot (`dokumentasi/`)
 
-| File | Isi |
-|---|---|
-| `Tinker1.png` – `Tinker5.png` | 5 query Tinker + hasil |
-| `dashboard_admin.png`, `dashboard_editor.png`, `dashboard_user.png` | Dashboard per peran |
-| `katalog_admin.png`, `katalog_editor.png`, `katalog_user.png` | Katalog per peran |
-| `order_admin.png`, `order_editor.png`, `order_user.png` | Daftar order per peran |
-| `error403.png` | Bukti penolakan akses (403) |
+### 5 Query Tinker (Bagian A No.4)
+
+Q1 — 5 produk termahal + kategori:
+![Tinker1](dokumentasi/Tinker1.png)
+
+Q2 — scope active + inStock:
+![Tinker2](dokumentasi/Tinker2.png)
+
+Q3 — kategori + jumlah produk:
+![Tinker3](dokumentasi/Tinker3.png)
+
+Q4 — order + user + item:
+![Tinker4](dokumentasi/Tinker4.png)
+
+Q5 — rata-rata rating produk:
+![Tinker5](dokumentasi/Tinker5.png)
+
+### Dashboard per peran
+
+Admin (`/admin/dashboard`):
+![dashboard_admin](dokumentasi/dashboard_admin.png)
+
+Editor (`/dashboard`):
+![dashboard_editor](dokumentasi/dashboard_editor.png)
+
+User (`/dashboard`):
+![dashboard_user](dokumentasi/dashboard_user.png)
+
+### Katalog per peran (`/products`)
+
+Admin (tombol Edit + Hapus):
+![katalog_admin](dokumentasi/katalog_admin.png)
+
+Editor (hanya tombol Edit):
+![katalog_editor](dokumentasi/katalog_editor.png)
+
+User (tanpa tombol kelola):
+![katalog_user](dokumentasi/katalog_user.png)
+
+### Order per peran (`/orders`)
+
+Admin (semua pesanan):
+![order_admin](dokumentasi/order_admin.png)
+
+Editor (semua pesanan):
+![order_editor](dokumentasi/order_editor.png)
+
+User (hanya miliknya):
+![order_user](dokumentasi/order_user.png)
+
+### Bukti penolakan akses (Bagian B No.8)
+
+User membuka `/admin/dashboard` → 403:
+![error403](dokumentasi/error403.png)
 
 ## File Penting
 
