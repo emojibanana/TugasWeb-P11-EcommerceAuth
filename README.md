@@ -1,68 +1,100 @@
-# TR11 Ekomers — Tugas Rutin 11: E-Commerce DB + Secure Auth
+<div align="center">
 
-Aplikasi e-commerce Laravel untuk **Tugas Rutin 11 — Database & Eloquent + Auth & Security**
-(Authentication vs Authorization, Laravel Breeze, Middleware Pipeline, Gates & Policies, Multi-Role).
+# TR11 Ekomers
 
-## Isi Sistem
+### Tugas Rutin 11 — E-Commerce Database + Secure Auth
 
-**Katalog e-commerce** (113 produk, 26 kategori, harga IDR realistis) dengan 3 peran:
+Katalog e-commerce Laravel dengan otorisasi multi-role penuh:
+**Authentication** (Breeze) + **Authorization** (Middleware, Gates & Policies)
+
+![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?style=for-the-badge&logo=php&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![PHPUnit](https://img.shields.io/badge/Tests-25_passed-success?style=for-the-badge)
+
+**113 produk · 26 kategori · harga IDR realistis · 3 peran · 15 screenshot bukti**
+
+[Instalasi](#-cara-menjalankan) ·
+[Akun Demo](#-akun-demo) ·
+[Matriks Peran](#-matriks-hak-akses) ·
+[Screenshot](#-screenshot)
+
+</div>
+
+---
+
+## Daftar Isi
+
+- [Tentang](#-tentang)
+- [Matriks Hak Akses](#-matriks-hak-akses)
+- [Bagian A — Database & Eloquent](#-bagian-a--database--eloquent)
+- [Bagian B — Auth & Security](#-bagian-b--auth--security)
+- [Akun Demo](#-akun-demo)
+- [Cara Menjalankan](#-cara-menjalankan)
+- [Screenshot](#-screenshot)
+- [Struktur Proyek](#-struktur-proyek)
+- [Tech Stack](#-tech-stack)
+
+## Tentang
+
+Aplikasi ini menjawab dua lapis keamanan web yang berbeda:
+
+> **Authentication** — "Siapa kamu?" (login, register, session via Breeze)
+> **Authorization** — "Bolehkah kamu?" (Middleware + Policy + Gate per peran)
+
+Prinsip yang dipegang: tombol yang disembunyikan di view **hanya UX** —
+penolakan yang sesungguhnya selalu terjadi di server (middleware mengembalikan 403,
+controller memanggil `$this->authorize()`).
+
+## Matriks Hak Akses
 
 | Fitur | User | Editor | Admin |
-|---|---|---|---|
-| Lihat katalog `/products` | Ya | Ya | Ya |
-| Edit produk | Tidak (403) | Ya | Ya |
-| Hapus produk | Tidak (403) | Tidak (403) | Ya |
+|---|---|:-:|:-:|
+| Lihat katalog `/products` | ✓ | ✓ | ✓ |
+| Edit produk | 403 | ✓ | ✓ |
+| Hapus produk | 403 | 403 | ✓ |
 | Lihat order | Milik sendiri | Semua | Semua |
-| Buka `/admin/dashboard` | 403 | 403 | Ya |
-| Buka `/editor/products` | 403 | Ya | Ya |
-
-Keamanan mengikuti prinsip slide: tombol disembunyikan di view **hanya untuk UX**,
-otorisasi asli ditegakkan di **Middleware + Policy + Gate** (cek di controller).
+| Buka `/admin/dashboard` | 403 | 403 | ✓ |
+| Buka `/editor/products` | 403 | ✓ | ✓ |
 
 ## Bagian A — Database & Eloquent
 
-1. **Migrasi 7 tabel + FK**: `categories` (self-FK `parent_id`), `products` → categories,
-   `carts` → users + products, `orders` → users, `order_items` → orders + products,
-   `reviews` → users + products, `wishlists` → users + products.
-   Migrasi tambahan: `users.role` enum `admin,editor,user` dan `reviews.is_approved`.
-2. **Seeder + Factory (data realistis)**: 17 user, 26 kategori (6 induk + 20 anak),
-   113 produk dengan rentang harga IDR per kategori (HP 1,5–18 jt, laptop 5–35 jt,
-   buku 60–400 rb, dst.), plus cart / wishlist / review / order realistis.
-3. **Model + relasi + scope**: `User, Category, Product, Cart, Order, OrderItem, Review, Wishlist`;
-   scope `Product::active()/inStock()`, `Category::root()`, `Order::pending()`,
-   `Review::approved()`, `Cart::forUser($id)`.
-4. **5 query Tinker** (bukti di `dokumentasi/Tinker1.png` – `Tinker5.png`):
-   ```php
-   Product::with('category')->orderByDesc('price')->limit(5)->get();
-   Product::active()->count(); Product::inStock()->count();
-   Category::withCount('products')->orderByDesc('products_count')->limit(5)->get();
-   Order::with(['user','items.product'])->latest()->limit(3)->get();
-   Product::withAvg('reviews','rating')->withCount('reviews')->orderByDesc('reviews_avg_rating')->limit(5)->get();
-   ```
+| No | Requirement | Status |
+|---|---|---|
+| 1 | Migrasi **7 tabel** e-commerce + FK constraints | ✓ `categories` (self-FK `parent_id`), `products`, `carts`, `orders`, `order_items`, `reviews`, `wishlists` + fix `users.role` enum dan `reviews.is_approved` |
+| 2 | Seeder + factory realistis | ✓ 17 user, 26 kategori (6 induk + 20 anak), **113 produk** harga IDR per kategori (HP 1,5–18 jt · laptop 5–35 jt · buku 60–400 rb) |
+| 3 | Model + relasi + scope | ✓ 8 model; scope `Product::active()/inStock()`, `Category::root()`, `Order::pending()`, `Review::approved()`, `Cart::forUser($id)` |
+| 4 | Dokumentasi 5 query Tinker | ✓ [lihat screenshot](#-5-query-tinker-bagian-a-no4) |
+
+```php
+Product::with('category')->orderByDesc('price')->limit(5)->get();
+Product::active()->count(); Product::inStock()->count();
+Category::withCount('products')->orderByDesc('products_count')->limit(5)->get();
+Order::with(['user','items.product'])->latest()->limit(3)->get();
+Product::withAvg('reviews','rating')->withCount('reviews')->orderByDesc('reviews_avg_rating')->limit(5)->get();
+```
 
 ## Bagian B — Auth & Security
 
-5. **Laravel Breeze**: login / register / logout, `/profile`, proteksi `verified`.
-   Register baru otomatis role `user` (tidak bisa self-assign admin).
-6. **Multi-role + custom middleware** (`bootstrap/app.php` alias `admin`/`role`):
-   `EnsureAdmin` (hanya `admin`, selain itu 403) dan `EnsureRole` (`role:admin,editor`).
-7. **Otorisasi**: `ProductPolicy` (padanan PostPolicy untuk e-commerce —
-   lihat semua boleh login, ubah admin + editor, hapus hanya admin),
-   `OrderPolicy` (user hanya miliknya), `PostPolicy` (logika slide verbatim
-   `$u->id === $p->user_id || role editor`), Gate `admin` + `edit-products`.
-8. **Proteksi route + testing incognito**: `/admin/dashboard` (auth + admin),
-   `/editor/products` (auth + role), edit/hapus produk via `$this->authorize()`.
-   Uji: tab biasa login admin (lolos) vs tab incognito login user (403) —
-   bukti di `dokumentasi/error403.png`.
+| No | Requirement | Status |
+|---|---|---|
+| 5 | Breeze login/register/logout | ✓ + `/profile`, proteksi `verified`; register baru otomatis role `user` |
+| 6 | Multi-role + custom middleware | ✓ `EnsureAdmin` (hanya admin) + `EnsureRole` (`role:admin,editor`), alias di `bootstrap/app.php` |
+| 7 | Policy edit/delete | ✓ `ProductPolicy` (padanan PostPolicy: ubah admin+editor, hapus hanya admin), `OrderPolicy` (user hanya miliknya), Gate `admin` + `edit-products` |
+| 8 | Route protection + uji 2 role | ✓ tab biasa admin lolos vs tab incognito user 403 ([bukti](#-bukti-penolakan-akses-bagian-b-no8)) |
 
-Bonus: **eager loading** di semua controller (`with('category')`,
-`with(['user','items.product'])`) — demo N+1: tanpa `with()` 6 query, dengan `with()` 2 query.
+> **Bonus:** eager loading di semua controller — demo N+1 terpangkas dari **6 query menjadi 2 query**.
 
-## Akun Demo (password semua: `password`)
+## Akun Demo
 
-- Admin: `admin@example.com`
-- Editor: `editor@example.com`
-- User: 15 akun seeder atau register baru via `/register`
+Password semua akun: `password`
+
+| Peran | Email | Keterangan |
+|---|---|---|
+| Admin | `admin@example.com` | Akses penuh + `/admin/dashboard` |
+| Editor | `editor@example.com` | Edit produk, lihat semua order |
+| User | 15 akun seeder / daftar via `/register` | Belanja, order milik sendiri |
 
 ## Cara Menjalankan
 
@@ -73,78 +105,80 @@ php artisan key:generate
 # sesuaikan DB di .env (MySQL: DB_DATABASE=tr11_ekomers), lalu:
 php artisan migrate:fresh --seed
 npm install && npm run build
-php artisan serve   # buka http://localhost:8000
+php artisan serve   # http://localhost:8000
 php artisan test    # 25/25 lolos
 ```
 
-## Screenshot (`dokumentasi/`)
+**Uji incognito 2 peran:** tab biasa login `admin@example.com`, tab incognito login user,
+buka `/admin/dashboard` di keduanya — admin lolos, user mendapat 403.
+
+## Screenshot
 
 ### 5 Query Tinker (Bagian A No.4)
 
-Q1 — 5 produk termahal + kategori:
-![Tinker1](dokumentasi/Tinker1.png)
+**Q1 — 5 produk termahal + kategori**
 
-Q2 — scope active + inStock:
-![Tinker2](dokumentasi/Tinker2.png)
+<p align="center"><img src="dokumentasi/Tinker1.png" width="850"></p>
 
-Q3 — kategori + jumlah produk:
-![Tinker3](dokumentasi/Tinker3.png)
+**Q2 — scope active + inStock**
 
-Q4 — order + user + item:
-![Tinker4](dokumentasi/Tinker4.png)
+<p align="center"><img src="dokumentasi/Tinker2.png" width="850"></p>
 
-Q5 — rata-rata rating produk:
-![Tinker5](dokumentasi/Tinker5.png)
+**Q3 — kategori + jumlah produk**
+
+<p align="center"><img src="dokumentasi/Tinker3.png" width="850"></p>
+
+**Q4 — order + user + item**
+
+<p align="center"><img src="dokumentasi/Tinker4.png" width="850"></p>
+
+**Q5 — rata-rata rating produk**
+
+<p align="center"><img src="dokumentasi/Tinker5.png" width="850"></p>
 
 ### Dashboard per peran
 
-Admin (`/admin/dashboard`):
-![dashboard_admin](dokumentasi/dashboard_admin.png)
-
-Editor (`/dashboard`):
-![dashboard_editor](dokumentasi/dashboard_editor.png)
-
-User (`/dashboard`):
-![dashboard_user](dokumentasi/dashboard_user.png)
+| Admin (`/admin/dashboard`) | Editor (`/dashboard`) | User (`/dashboard`) |
+|---|---|---|
+| ![admin](dokumentasi/dashboard_admin.png) | ![editor](dokumentasi/dashboard_editor.png) | ![user](dokumentasi/dashboard_user.png) |
 
 ### Katalog per peran (`/products`)
 
-Admin (tombol Edit + Hapus):
-![katalog_admin](dokumentasi/katalog_admin.png)
-
-Editor (hanya tombol Edit):
-![katalog_editor](dokumentasi/katalog_editor.png)
-
-User (tanpa tombol kelola):
-![katalog_user](dokumentasi/katalog_user.png)
+| Admin — tombol Edit + Hapus | Editor — hanya Edit | User — tanpa tombol kelola |
+|---|---|---|
+| ![katalog_admin](dokumentasi/katalog_admin.png) | ![katalog_editor](dokumentasi/katalog_editor.png) | ![katalog_user](dokumentasi/katalog_user.png) |
 
 ### Order per peran (`/orders`)
 
-Admin (semua pesanan):
-![order_admin](dokumentasi/order_admin.png)
-
-Editor (semua pesanan):
-![order_editor](dokumentasi/order_editor.png)
-
-User (hanya miliknya):
-![order_user](dokumentasi/order_user.png)
+| Admin — semua pesanan | Editor — semua pesanan | User — hanya miliknya |
+|---|---|---|
+| ![order_admin](dokumentasi/order_admin.png) | ![order_editor](dokumentasi/order_editor.png) | ![order_user](dokumentasi/order_user.png) |
 
 ### Bukti penolakan akses (Bagian B No.8)
 
-User membuka `/admin/dashboard` → 403:
-![error403](dokumentasi/error403.png)
+User membuka `/admin/dashboard` → **403**:
 
-## File Penting
+<p align="center"><img src="dokumentasi/error403.png" width="850"></p>
 
-- `database/migrations/` — 7 tabel e-commerce + fix `users.role` + `reviews.is_approved`
-- `app/Models/` — 8 model + relasi + scope
-- `database/{factories,seeders}/` — data realistis IDR
-- `app/Http/Middleware/{EnsureAdmin,EnsureRole}.php` — middleware multi-role
-- `app/Policies/{ProductPolicy,OrderPolicy,PostPolicy}.php` — otorisasi
-- `app/Providers/AppServiceProvider.php` — Gate `admin`, `edit-products`
-- `app/Http/Controllers/{ProductController,OrderController,Admin/DashboardController}.php`
-- `routes/web.php` — route terproteksi middleware + policy
+## Struktur Proyek
+
+```
+database/migrations/   7 tabel e-commerce + fix users.role + reviews.is_approved
+app/Models/            8 model + relasi + scope
+database/{factories,seeders}/  data realistis IDR
+app/Http/Middleware/   EnsureAdmin.php, EnsureRole.php
+app/Policies/          ProductPolicy.php, OrderPolicy.php, PostPolicy.php
+app/Providers/         AppServiceProvider.php (Gate admin, edit-products)
+app/Http/Controllers/  ProductController, OrderController, Admin/DashboardController
+routes/web.php         route terproteksi middleware + policy
+resources/views/       admin/dashboard, products/*, orders/*, dashboard
+dokumentasi/           15 screenshot bukti
+```
 
 ## Tech Stack
 
-Laravel 13, PHP 8.3, MySQL, Breeze (Blade), Tailwind CSS, PHPUnit.
+<div align="center">
+
+Laravel 13 · PHP 8.3 · MySQL · Breeze (Blade) · Tailwind CSS · PHPUnit
+
+</div>
