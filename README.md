@@ -24,18 +24,6 @@ Katalog e-commerce Laravel dengan otorisasi multi-role penuh:
 
 ---
 
-## Daftar Isi
-
-- [Tentang](#-tentang)
-- [Matriks Hak Akses](#-matriks-hak-akses)
-- [Bagian A — Database & Eloquent](#-bagian-a--database--eloquent)
-- [Bagian B — Auth & Security](#-bagian-b--auth--security)
-- [Akun Demo](#-akun-demo)
-- [Cara Menjalankan](#-cara-menjalankan)
-- [Screenshot](#-screenshot)
-- [Struktur Proyek](#-struktur-proyek)
-- [Tech Stack](#-tech-stack)
-
 ## Tentang
 
 Aplikasi ini menjawab dua lapis keamanan web yang berbeda:
